@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="D:\AI ML Projects\Youtube Projects\COVID - SQL_Data_Analysis\Covid_Project.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="125"/><column_width id="3" width="9883"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,27:mainPercentPopulationVaccinated"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="CovidDeathSQL" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="95"/><column index="2" value="91"/><column index="3" value="103"/><column index="4" value="108"/><column index="5" value="241"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="CovidDeaths" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="92"/><column index="2" value="92"/><column index="3" value="95"/><column index="4" value="91"/><column index="5" value="103"/><column index="6" value="108"/><column index="7" value="104"/><column index="8" value="201"/><column index="9" value="119"/><column index="10" value="115"/><column index="11" value="212"/><column index="12" value="216"/><column index="13" value="212"/><column index="14" value="300"/><column index="15" value="227"/><column index="16" value="223"/><column index="17" value="300"/><column index="18" value="166"/><column index="19" value="116"/><column index="20" value="224"/><column index="21" value="133"/><column index="22" value="241"/><column index="23" value="213"/><column index="24" value="300"/><column index="25" value="230"/><column index="26" value="300"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="PercentPopulationVaccinated" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="92"/><column index="2" value="79"/><column index="3" value="75"/><column index="4" value="103"/><column index="5" value="164"/><column index="6" value="221"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">-- Select Data that we are going to be starting with
 
 Select Location, date, total_cases, new_cases, total_deaths, population
 From CovidDeaths
@@ -67,51 +66,96 @@ SUM(cast(new_deaths as int) *1. )/SUM(New_Cases)*100 as DeathPercentage_Globally
 --Here we are using cast to convert new_deaths from text to int
 From CovidDeaths
 where continent is not null;
-
 
--- Total Population vs Vaccinations
-Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
-SUM(Cast(vac.new_vaccinations as int)) 
-	OVER (PARTITION by dea.location Order by dea.location, dea.Date) 
-	as RollingPeopleVaccinated 
+
+
+-- Total Population vs Vaccinations
+
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
+
+SUM(Cast(vac.new_vaccinations as int)) 
+
+	OVER (PARTITION by dea.location Order by dea.location, dea.Date) 
+
+	as RollingPeopleVaccinated 
+
 -- 	(RollingPeopleVaccinated/population)*100
-FROM CovidDeaths dea JOIN CovidVaccinations vac
-	on dea.location = vac.location
-	and dea.date = vac.date
-where dea.continent is not null;
-
-
--- Using CTE to perform Calculation on Partition By in previous query
-
-With PopvsVac (Continent, Location, Date, Population, 
-New_Vaccinations, RollingPeopleVaccinated)
-as
-(
-Select dea.continent, dea.location, dea.date, 
-dea.population, vac.new_vaccinations,
-SUM(Cast(vac.new_vaccinations as int))
-	OVER (Partition by dea.Location Order by dea.location, dea.Date) 
-	as RollingPeopleVaccinated
-	-- (RollingPeopleVaccinated/population)*100
-From CovidDeaths dea Join CovidVaccinations vac
-	On dea.location = vac.location
-	and dea.date = vac.date
-where dea.continent is not null 
-)
-Select *, (RollingPeopleVaccinated *1. /Population)*100 as PeopleVaccinatedPercentage
-From PopvsVac
-
-
--- Creating View to store data for later visualizations
-
-Create View PercentPopulationVaccinated as
-Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
-, SUM(Cast(vac.new_vaccinations as int))
- OVER (Partition by dea.Location Order by dea.location, dea.Date) 
- as RollingPeopleVaccinated
-
- From CovidDeaths dea
-Join  CovidVaccinations vac
-	On dea.location = vac.location
-	and dea.date = vac.date
+FROM CovidDeaths dea JOIN CovidVaccinations vac
+
+	on dea.location = vac.location
+
+	and dea.date = vac.date
+
+where dea.continent is not null;
+
+
+
+
+
+-- Using CTE to perform Calculation on Partition By in previous query
+
+
+
+With PopvsVac (Continent, Location, Date, Population, 
+
+New_Vaccinations, RollingPeopleVaccinated)
+
+as
+
+(
+
+Select dea.continent, dea.location, dea.date, 
+
+dea.population, vac.new_vaccinations,
+
+SUM(Cast(vac.new_vaccinations as int))
+
+	OVER (Partition by dea.Location Order by dea.location, dea.Date) 
+
+	as RollingPeopleVaccinated
+
+	-- (RollingPeopleVaccinated/population)*100
+
+From CovidDeaths dea Join CovidVaccinations vac
+
+	On dea.location = vac.location
+
+	and dea.date = vac.date
+
+where dea.continent is not null 
+
+)
+
+Select *, (RollingPeopleVaccinated *1. /Population)*100 as PeopleVaccinatedPercentage
+
+From PopvsVac
+
+
+
+
+
+-- Creating View to store data for later visualizations
+
+
+
+Create View PercentPopulationVaccinated as
+
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+
+, SUM(Cast(vac.new_vaccinations as int))
+
+ OVER (Partition by dea.Location Order by dea.location, dea.Date) 
+
+ as RollingPeopleVaccinated
+
+
+
+ From CovidDeaths dea
+
+Join  CovidVaccinations vac
+
+	On dea.location = vac.location
+
+	and dea.date = vac.date
+
 where dea.continent is not null; </sql><current_tab id="0"/></tab_sql></sqlb_project>
